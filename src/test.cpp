@@ -48,7 +48,21 @@ PYBIND11_MODULE(tfheppy, m) {
       .def("pbs_identity", &Service::programmable_bootstrapping, py::arg("x"))
       .def("pbs_relu", &Service::programmable_bootstrapping_relu, py::arg("x"))
       .def("pbs_sigmoid", &Service::programmable_bootstrapping_sigmoid, py::arg("x"))
-      .def("pbs_mult", &Service::programmable_bootstrapping_mult, py::arg("x"), py::arg("m"), py::arg("expansion"));
+      .def("pbs_mult", &Service::programmable_bootstrapping_mult, py::arg("x"), py::arg("m"), py::arg("expansion"))
+      .def("serialize_ctxt", &Service::serialize_ctxt, py::arg("x"))
+      .def("serialize_ctxt_to_file", &Service::serialize_ctxt_to_file, py::arg("x"), py::arg("path"))
+      .def("deserialize_ctxt", &Service::deserialize_ctxt, py::arg("x"))
+      .def("deserialize_ctxt_from_file", &Service::deserialize_ctxt_from_file, py::arg("path"))
+      .def("serialize_sk", &Service::serialize_sk)
+      .def("serialize_sk_to_file", &Service::serialize_sk_to_file, py::arg("path"))
+      .def("deserialize_sk", &Service::deserialize_sk, py::arg("x"))
+      .def("deserialize_sk_from_file", &Service::deserialize_sk_from_file, py::arg("path"))
+      .def("serialize_gk", &Service::serialize_gk)
+      .def("serialize_gk_to_file", &Service::serialize_gk_to_file, py::arg("path"))
+      .def("deserialize_gk", &Service::deserialize_gk, py::arg("x"))
+      .def("deserialize_gk_from_file", &Service::deserialize_gk_from_file, py::arg("path"))
+      .def("set_sk", &Service::set_sk, py::arg("x"))
+      .def("set_gk", &Service::set_gk, py::arg("x"));
 
 
 
