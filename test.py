@@ -1,3 +1,5 @@
+import time
+import sys
 import numpy as np
 
 import tfheppy
@@ -19,6 +21,25 @@ if __name__ == "__main__":
   ser = Service(encoder)
   ser.gen_keys()
 
+  x = [2 for _ in range(10)]
+  t1 = time.time()
+  c = ser.encode_and_encrypt_vector(x)
+  t2 = time.time()
+  print(f"time: {t2-t1}")
+  t1 = time.time()
+  c = ser.encode_and_encrypt_vector(x, False)
+  t2 = time.time()
+  print(f"time: {t2-t1}")
+
+
+  d = ser.decrypt_and_decode_vector(c)
+  for el in d: print(el)
+
+  c = ser.pbs_identity_vector(c)
+  d = ser.decrypt_and_decode_vector(c)
+  for el in d: print(el)
+
+  quit()
 
   print("encrypt")
   x = 2
@@ -33,22 +54,23 @@ if __name__ == "__main__":
   d = ser.decrypt_and_decode(c)
   print(f"{x} == {d}")
 
-  #print("pbs_mult")
-  #m = 1.2
-  #c = ser.pbs_mult(c, m, 2)
-  #d = ser.decrypt_and_decode(c)
-  #print(f"{x*m} == {d}")
+  print("pbs_mult")
+  m = 1.2
+  c = ser.pbs_mult(c, m, 2)
+  d = ser.decrypt_and_decode(c)
+  print(f"{x*m} == {d}")
 
-  #print("pbs_relu")
-  #c = ser.pbs_relu(c)
-  #d = ser.decrypt_and_decode(c)
-  #print(f"{x*m} == {d}")
+  print("pbs_relu")
+  c = ser.pbs_relu(c)
+  d = ser.decrypt_and_decode(c)
+  print(f"{x*m} == {d}")
 
-  #print("pbs_sigmoid")
-  #c = ser.pbs_sigmoid(c)
-  #d = ser.decrypt_and_decode(c)
-  #print(f"{sigmoid(x*m)} == {d}")
+  print("pbs_sigmoid")
+  c = ser.pbs_sigmoid(c)
+  d = ser.decrypt_and_decode(c)
+  print(f"{sigmoid(x*m)} == {d}")
 
+  
   print("ser/deser ctxt via memory")
   cstr = ser.serialize_ctxt(c)
   c = ser.deserialize_ctxt(cstr)

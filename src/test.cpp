@@ -1,4 +1,5 @@
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 #include <tfhe++.hpp>
 #include "include/ctxt.hpp"
 #include "include/service.hpp"
@@ -44,15 +45,25 @@ PYBIND11_MODULE(tfheppy, m) {
       .def("gen_keys", &Service::gen_keys) 
       .def("get_encoder", &Service::get_encoder)
       .def("encode_and_encrypt", &Service::encode_and_encrypt, py::arg("x"))
+      .def("encode_and_encrypt_vector", &Service::encode_and_encrypt_vector, py::arg("x"), py::arg("is_omp")=bool(true))
       .def("decrypt_and_decode", &Service::decrypt_and_decode, py::arg("x"))
+      .def("decrypt_and_decode_vector", &Service::decrypt_and_decode_vector, py::arg("x"), py::arg("is_omp")=bool(true))
       .def("pbs_identity", &Service::programmable_bootstrapping, py::arg("x"))
+      .def("pbs_identity_vector", &Service::programmable_bootstrapping_vector, py::arg("x"), py::arg("is_omp")=bool(true))
       .def("pbs_relu", &Service::programmable_bootstrapping_relu, py::arg("x"))
+      .def("pbs_relu_vector", &Service::programmable_bootstrapping_relu_vector, py::arg("x"), py::arg("is_omp")=bool(true))
       .def("pbs_sigmoid", &Service::programmable_bootstrapping_sigmoid, py::arg("x"))
+      .def("pbs_sigmoid_vector", &Service::programmable_bootstrapping_sigmoid_vector, py::arg("x"), py::arg("is_omp")=bool(true))
       .def("pbs_mult", &Service::programmable_bootstrapping_mult, py::arg("x"), py::arg("m"), py::arg("expansion"))
+      .def("pbs_mult_vector", &Service::programmable_bootstrapping_mult_vector, py::arg("x"), py::arg("m"), py::arg("expansion"), py::arg("is_omp")=bool(true))
       .def("serialize_ctxt", &Service::serialize_ctxt, py::arg("x"))
+      .def("serialize_ctxt_vector", &Service::serialize_ctxt_vector, py::arg("x"))
       .def("serialize_ctxt_to_file", &Service::serialize_ctxt_to_file, py::arg("x"), py::arg("path"))
+      .def("serialize_ctxt_to_file_vector", &Service::serialize_ctxt_to_file_vector, py::arg("x"), py::arg("path"))
       .def("deserialize_ctxt", &Service::deserialize_ctxt, py::arg("x"))
+      .def("deserialize_ctxt_vector", &Service::deserialize_ctxt_vector, py::arg("x"), py::arg("is_omp")=bool(true))
       .def("deserialize_ctxt_from_file", &Service::deserialize_ctxt_from_file, py::arg("path"))
+      .def("deserialize_ctxt_from_file_vector", &Service::deserialize_ctxt_from_file_vector, py::arg("path"), py::arg("is_omp")=bool(true))
       .def("serialize_sk", &Service::serialize_sk)
       .def("serialize_sk_to_file", &Service::serialize_sk_to_file, py::arg("path"))
       .def("deserialize_sk", &Service::deserialize_sk, py::arg("x"))
