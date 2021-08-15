@@ -33,11 +33,14 @@ PYBIND11_MODULE(tfheppy, m) {
     py::class_<Encoder>(m,"Encoder")
       .def(py::init<>())
       .def(py::init<double, double, int, bool>())
-      .def("encode_0_1", &Encoder::encode_0_1, py::arg("x"));
+      .def("encode_0_1", &Encoder::encode_0_1, py::arg("x"))
+      .def("print", &Encoder::print);
 
     py::class_<Ctxt>(m, "Ctxt")
       .def(py::init<>())
-      .def(py::init<array<lvl0param::T, lvl0param::n+1>>());
+      .def(py::init<array<lvl0param::T, lvl0param::n+1>, Encoder>())
+      .def("get", &Ctxt::get)
+      .def("get_encoder", &Ctxt::get_encoder);
 
     py::class_<Service>(m, "Service")
       .def(py::init<>())
@@ -73,7 +76,19 @@ PYBIND11_MODULE(tfheppy, m) {
       .def("deserialize_gk", &Service::deserialize_gk, py::arg("x"))
       .def("deserialize_gk_from_file", &Service::deserialize_gk_from_file, py::arg("path"))
       .def("set_sk", &Service::set_sk, py::arg("x"))
-      .def("set_gk", &Service::set_gk, py::arg("x"));
+      .def("set_gk", &Service::set_gk, py::arg("x"))
+      .def("add_const", &Service::add_const, py::arg("x"), py::arg("m"))
+      .def("add_const_vector", &Service::add_const_vector, py::arg("x"), py::arg("m"), py::arg("is_omp")=bool(true))
+      .def("add_hom_fixed_encoder", &Service::add_hom_fixed_encoder, py::arg("x"), py::arg("y"))
+      .def("add_hom_fixed_encoder_vector", &Service::add_hom_fixed_encoder_vector, py::arg("x"), py::arg("y"), py::arg("is_omp")=bool(true))
+      .def("sub_hom_fixed_encoder", &Service::sub_hom_fixed_encoder, py::arg("x"), py::arg("y"))
+      .def("sub_hom_fixed_encoder_vector", &Service::sub_hom_fixed_encoder_vector, py::arg("x"), py::arg("y"), py::arg("is_omp")=bool(true))
+      .def("max_hom", &Service::max_hom, py::arg("x"), py::arg("y"))
+      .def("max_hom_vector", &Service::max_hom_vector, py::arg("x"), py::arg("y"), py::arg("is_omp")=bool(true))
+      .def("sum_in_col", &Service::sum_in_col, py::arg("x"), py::arg("start_idx"), py::arg("end_idx"))
+      .def("max_in_col", &Service::max_in_col, py::arg("x"), py::arg("start_idx"), py::arg("end_idx"))
+      .def("inner", &Service::inner, py::arg("x"), py::arg("m"), py::arg("expansion"), py::arg("is_omp")=bool(true))
+      .def("vector_matrix_mult", &Service::vector_matrix_mult, py::arg("x"), py::arg("m"), py::arg("expansion")=double(1.0), py::arg("is_omp")=bool(true));
 
 
 

@@ -4,7 +4,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 OPTION(USE_80BIT_SECURITY "Use 80bit security parameter(faster)" ON)
 
-set(CMAKE_CXX_FLAGS "-O2 -std=c++11 -Wall -fPIC -fopenmp ")
+set(CMAKE_CXX_FLAGS "-O2 -std=c++11 -Wall -fPIC -fopenmp -fpermissive")
 
 file(GLOB tfhe++_sources "${PROJECT_SOURCE_DIR}/thirdparties/TFHEpp/src/*.cpp")
 
