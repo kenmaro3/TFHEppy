@@ -1,0 +1,6 @@
+[submodule "thirdparties/pybind11"]
+	path = thirdparties/pybind11
+	url = https://github.com/pybind/pybind11
+[submodule "thirdparties/TFHEpp"]
+	path = thirdparties/TFHEpp
+	url = https://github.com/kenmaro3/TFHEpp
