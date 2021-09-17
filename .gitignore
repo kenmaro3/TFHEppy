@@ -1,3 +1,6 @@
 build
 *.so
 *.h5
+*.key
+*.data
+*.pyc
