@@ -20,7 +20,8 @@ def dispense_data():
     data_y = np_utils.to_categorical(data_y)
     data_x = sklearn.preprocessing.normalize(data_x)
 
-    x_train, x_test, y_train, y_test = train_test_split(data_x, data_y, test_size=0.2)
+    x_train, x_test, y_train, y_test = train_test_split(
+        data_x, data_y, test_size=0.2)
 
     return x_train, y_train, x_test, y_test
 
@@ -31,7 +32,8 @@ def dispense_model():
     model.add(Dense(input_dim=100, units=32, activation='relu'))
     model.add(Dense(input_dim=32, units=3))
     model.add(Activation('softmax'))
-    model.compile(loss='categorical_crossentropy', optimizer=tf.keras.optimizers.Adam(), metrics=['accuracy'])
+    model.compile(loss='categorical_crossentropy',
+                  optimizer=tf.keras.optimizers.Adam(), metrics=['accuracy'])
 
     return model
 
@@ -47,8 +49,6 @@ def train_model(model, model_path, x_train, y_train, x_test, y_test):
     return model
 
 
-
-
 if __name__ == "__main__":
 
     model_name = "nn_iris"
@@ -58,4 +58,3 @@ if __name__ == "__main__":
 
     model = dispense_model()
     model = train_model(model, model_path, x_train, y_train, x_valid, y_valid)
-
