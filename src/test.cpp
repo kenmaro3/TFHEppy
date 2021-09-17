@@ -32,7 +32,7 @@ PYBIND11_MODULE(tfheppy, m) {
 
     py::class_<Encoder>(m,"Encoder")
       .def(py::init<>())
-      .def(py::init<double, double, int, bool>())
+      .def(py::init<double, double, int>())
       .def("encode_0_1", &Encoder::encode_0_1, py::arg("x"))
       .def("print", &Encoder::print);
 

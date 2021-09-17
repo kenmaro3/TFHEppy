@@ -168,7 +168,7 @@ def test_matrix_vector_mult(ser):
 
 if __name__ == "__main__":
   print("setup encoder")
-  encoder = Encoder(-10, 10, 32, True)
+  encoder = Encoder(-10, 10, 32)
 
 
   print("setup service with keys")

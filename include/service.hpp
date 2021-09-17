@@ -40,6 +40,18 @@ double get_wider(double x){
   }
 }
 
+class MultFunction : public AbstructFunction {
+public:
+  double x;
+  MultFunction(double x) : AbstructFunction() {
+    this->x = x;
+  }
+
+  double run(double y) {
+    return x * y;
+  }
+};
+
 class Service
 {
   private:
@@ -136,7 +148,8 @@ class Service
 
     Ctxt programmable_bootstrapping(Ctxt x){
       TLWE<lvl0param> c_tmp;
-      TFHEpp::ProgrammableBootstrapping(c_tmp, x.get(), *(this->gk.get()), x.encoder, x.encoder, my_identity_function);
+      IdentityFunction identity_function = IdentityFunction();
+      TFHEpp::ProgrammableBootstrapping(c_tmp, x.get(), *(this->gk.get()), x.encoder, x.encoder, identity_function);
       return Ctxt(c_tmp, x.encoder);
     }
 
@@ -160,7 +173,8 @@ class Service
 
     Ctxt programmable_bootstrapping_relu(Ctxt x){
       TLWE<lvl0param> c_tmp;
-      TFHEpp::ProgrammableBootstrapping(c_tmp, x.get(), *(this->gk.get()), x.encoder, x.encoder, my_relu_function);
+      ReLUFunction relu_function = ReLUFunction();
+      TFHEpp::ProgrammableBootstrapping(c_tmp, x.get(), *(this->gk.get()), x.encoder, x.encoder, relu_function);
       return Ctxt(c_tmp, x.encoder);
     }
 
@@ -184,7 +198,8 @@ class Service
 
     Ctxt programmable_bootstrapping_sigmoid(Ctxt x){
       TLWE<lvl0param> c_tmp;
-      TFHEpp::ProgrammableBootstrapping(c_tmp, x.get(), *(this->gk.get()), x.encoder, x.encoder, my_sigmoid_function);
+      SigmoidFunction sigmoid_function = SigmoidFunction();
+      TFHEpp::ProgrammableBootstrapping(c_tmp, x.get(), *(this->gk.get()), x.encoder, x.encoder, sigmoid_function);
       return Ctxt(c_tmp, x.encoder);
     }
 
@@ -207,6 +222,7 @@ class Service
     }
 
     Ctxt programmable_bootstrapping_mult(Ctxt x, double m, double expansion){
+      MultFunction mult_function = MultFunction(m);
 
       Encoder encoder_domain = Encoder::copy(x.encoder);
       Encoder encoder_target = Encoder::copy(x.encoder);
@@ -214,7 +230,7 @@ class Service
       encoder_target.update(expansion);
 
       TLWE<lvl0param> c_tmp;
-      TFHEpp::ProgrammableBootstrapping(c_tmp, x.get(), *(this->gk.get()), encoder_domain, encoder_target, my_mult_function, m);
+      TFHEpp::ProgrammableBootstrapping(c_tmp, x.get(), *(this->gk.get()), encoder_domain, encoder_target, mult_function);
       //this->encoder.update(expansion);
       return Ctxt(c_tmp, encoder_target);
     }

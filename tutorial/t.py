@@ -30,7 +30,7 @@ def dispense_data():
 
 def gen_ser():
   print("setup encoder")
-  encoder = Encoder(-3, 3, 32, True)
+  encoder = Encoder(-3, 3, 32)
   print("setup service with keys")
   ser = Service(encoder)
   ser.gen_keys()
