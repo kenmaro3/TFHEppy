@@ -24,7 +24,7 @@ endif()
 
 
 add_subdirectory(thirdparties/pybind11)
-add_subdirectory(thirdparties)
+add_subdirectory(thirdparties/TFHEpp)
 
 pybind11_add_module(tfheppy
   src/test.cpp
