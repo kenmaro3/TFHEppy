@@ -18,6 +18,8 @@ from tfheppy import Encoder
 from tfheppy import Ctxt
 from tfheppy import Service
 
+from more_itertools import chunked
+
 
 def dispense_data():
     iris = load_iris()
@@ -90,6 +92,31 @@ def raw_dense(x, w, b, is_relu=True, is_print=False):
     return tmp
 
 
+def raw_max_pooling_1d(x, pool_size=2):
+    splited = x.reshape((pool_size, -1))
+    print("splited: ", splited)
+
+    res = splited.max(axis=1)
+    print("res: ", res)
+
+    return res
+
+
+def cipher_max_pooling_1d(x, ser, pool_size=2):
+    length = len(x) // pool_size
+    splited = list(chunked(x, 2))
+
+    res = []
+
+    for s in splited:
+        print(s)
+
+        r = ser.max_in_col(s, 0, length)
+        res.append(r)
+
+    return res
+
+
 if __name__ == "__main__":
     print("\n=========================================")
     print("hello, world")
@@ -107,16 +134,23 @@ if __name__ == "__main__":
 
     t1 = time.time()
 
-    c = cipher_dense(0, c, ws[0], bs[0], ser, True, True)
-    c = cipher_dense(1, c, ws[1], bs[1], ser, True, True)
-    c = cipher_dense(2, c, ws[2], bs[2], ser, False, True)
+    c1 = cipher_dense(0, c, ws[0], bs[0], ser, True, True)
+    c1 = cipher_dense(1, c1, ws[1], bs[1], ser, True, True)
+    c1 = cipher_dense(2, c1, ws[2], bs[2], ser, False, True)
     t2 = time.time()
     print("\n\n=========================================")
     print(f"time total: {t2-t1}")
 
-    p = raw_dense(x_test[0], ws[0], bs[0], True, True)
-    p = raw_dense(p, ws[1], bs[1], True, True)
-    p = raw_dense(p, ws[2], bs[2], False, True)
+    p1 = raw_dense(x_test[0], ws[0], bs[0], True, True)
+    p1 = raw_dense(p1, ws[1], bs[1], True, True)
+    p1 = raw_dense(p1, ws[2], bs[2], False, True)
+
+    c2 = cipher_max_pooling_1d(c, ser, 2)
+    p2 = ser.decrypt_and_decode_vector(c2)
+
+    p3 = raw_max_pooling_1d(x_test[0])
+
+    print(p2, p3)
 
     print("\n\n=========================================")
     print(f"done...")
