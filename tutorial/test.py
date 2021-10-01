@@ -111,6 +111,7 @@ def test_pbs():
     c = ser.pbs_relu(c)
     d = ser.decrypt_and_decode(c)
     assert assert_with_diff(x*m, d, PERMIT_ERROR3)
+    # print(x, d)
 
     print("pbs_sigmoid")
     c = ser.pbs_sigmoid(c)

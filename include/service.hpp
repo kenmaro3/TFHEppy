@@ -47,19 +47,12 @@ namespace TFHEpp
     }
   }
 
-  class MultFunction : public AbstructFunction
+  class MultFunction : public FunctionCustomTestVector<TFHEpp::lvl1param>
   {
   public:
-    double x;
-    MultFunction(double x) : AbstructFunction()
-    {
-      this->x = x;
-    }
-
-    double run(double y)
-    {
-      return x * y;
-    }
+    double y;
+    MultFunction(double y) { this->y = y; }
+    double run(double x) { return x * y; }
   };
 
   class Service
@@ -172,7 +165,7 @@ namespace TFHEpp
     Ctxt programmable_bootstrapping(Ctxt x)
     {
       TLWE<lvl0param> c_tmp;
-      IdentityFunction identity_function = IdentityFunction();
+      IdentityFunction identity_function = IdentityFunction<lvl1param>();
       TFHEpp::ProgrammableBootstrapping(c_tmp, x.get(), *(this->gk.get()), x.encoder, x.encoder, identity_function);
       return Ctxt(c_tmp, x.encoder);
     }
@@ -204,7 +197,7 @@ namespace TFHEpp
     Ctxt programmable_bootstrapping_relu(Ctxt x)
     {
       TLWE<lvl0param> c_tmp;
-      ReLUFunction relu_function = ReLUFunction();
+      ReLUFunction relu_function = ReLUFunction<lvl1param>();
       TFHEpp::ProgrammableBootstrapping(c_tmp, x.get(), *(this->gk.get()), x.encoder, x.encoder, relu_function);
       return Ctxt(c_tmp, x.encoder);
     }
@@ -236,7 +229,7 @@ namespace TFHEpp
     Ctxt programmable_bootstrapping_sigmoid(Ctxt x)
     {
       TLWE<lvl0param> c_tmp;
-      SigmoidFunction sigmoid_function = SigmoidFunction();
+      SigmoidFunction sigmoid_function = SigmoidFunction<lvl1param>();
       TFHEpp::ProgrammableBootstrapping(c_tmp, x.get(), *(this->gk.get()), x.encoder, x.encoder, sigmoid_function);
       return Ctxt(c_tmp, x.encoder);
     }
