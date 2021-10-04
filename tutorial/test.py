@@ -17,6 +17,13 @@ ser = Service(encoder)
 ser.gen_keys()
 
 
+def generate_custom_vector():
+    a = [1] * 2
+    b = [a] * 1204
+
+    return ser.run_custom_test_vector(x=ser, m=b)
+
+
 def sigmoid(a): return 1 / (1 + np.exp(-a))
 
 
@@ -195,11 +202,13 @@ def test_matrix_vector_mult():
 
 
 if __name__ == "__main__":
-    test_hom_add_sub()
-    test_hom_add_sub()
-    test_ser_deser()
-    test_pbs()
-    test_max()
-    # test_sum_in_col()
-    test_max_in_col()
-    test_matrix_vector_mult()
+    # test_hom_add_sub()
+    # test_hom_add_sub()
+    # test_ser_deser()
+    # test_pbs()
+    # test_max()
+    # # test_sum_in_col()
+    # test_max_in_col()
+    # test_matrix_vector_mult()
+
+    generate_custom_vector()

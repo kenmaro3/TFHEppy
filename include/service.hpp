@@ -298,6 +298,16 @@ namespace TFHEpp
       }
     }
 
+    Ctxt run_custom_test_vector(Ctxt x, std::array<std::array<lvl1param::T, lvl1param::n>, 2> m)
+    {
+      TLWE<lvl0param> c_tmp;
+
+      DirectCustomTestVector test_vector = DirectCustomTestVector<lvl1param>(m);
+      TFHEpp::ProgrammableBootstrapping(c_tmp, x.get(), *(this->gk.get()), x.encoder, x.encoder, test_vector);
+
+      return Ctxt(c_tmp, x.encoder);
+    }
+
     pybind11::bytes serialize_ctxt(Ctxt x)
     {
       std::stringstream ss;

@@ -91,5 +91,8 @@ PYBIND11_MODULE(tfheppy, m)
       .def("sum_in_col", &Service::sum_in_col, py::arg("x"), py::arg("start_idx"), py::arg("end_idx"))
       .def("max_in_col", &Service::max_in_col, py::arg("x"), py::arg("start_idx"), py::arg("end_idx"))
       .def("inner", &Service::inner, py::arg("x"), py::arg("m"), py::arg("expansion"), py::arg("is_omp") = bool(true))
-      .def("vector_matrix_mult", &Service::vector_matrix_mult, py::arg("x"), py::arg("m"), py::arg("expansion") = double(1.0), py::arg("is_omp") = bool(true));
+      .def("vector_matrix_mult", &Service::vector_matrix_mult, py::arg("x"), py::arg("m"), py::arg("expansion") = double(1.0), py::arg("is_omp") = bool(true))
+      .def("run_custom_test_vector", &Service::run_custom_test_vector, py::arg("x"), py::arg("m"));
 }
+
+// Ctxt run_custon_test_vector(Ctxt x, std::array<std::array<lvl1param::T, lvl1param::n>, 2> m)
