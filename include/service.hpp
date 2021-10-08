@@ -298,14 +298,23 @@ namespace TFHEpp
       }
     }
 
-    Ctxt run_custom_test_vector(Ctxt x, std::array<std::array<lvl1param::T, lvl1param::n>, 2> m)
+    std::array<double, lvl1param::n> basic_custom_test_vector()
     {
-      TLWE<lvl0param> c_tmp;
+      std::array<double, lvl1param::n> args = {};
+      DirectCustomTestVector<lvl1param>::basic_custom_test_vector(args, this->encoder);
 
-      DirectCustomTestVector test_vector = DirectCustomTestVector<lvl1param>(m);
-      TFHEpp::ProgrammableBootstrapping(c_tmp, x.get(), *(this->gk.get()), x.encoder, x.encoder, test_vector);
+      return args;
+    }
 
-      return Ctxt(c_tmp, x.encoder);
+    Ctxt run_custom_test_vector(Ctxt x, std::array<double, lvl1param::n> custom_test_vector_args)
+    {
+      TLWE<lvl0param> res;
+      std::array<std::array<lvl1param::T, lvl1param::n>, 2> custom_test_vector;
+
+      DirectCustomTestVector<lvl1param> test_vector = DirectCustomTestVector<lvl1param>::from_unencoded(custom_test_vector, custom_test_vector_args, this->encoder);
+      TFHEpp::ProgrammableBootstrapping(res, x.get(), *(this->gk.get()), this->encoder, this->encoder, test_vector);
+
+      return Ctxt(res, this->encoder);
     }
 
     pybind11::bytes serialize_ctxt(Ctxt x)
