@@ -1,0 +1,13 @@
+version: '3.4'
+
+services:
+  tfheppy:
+    image: tfheppy
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile
+    volumes:
+      - ./:/app/
+    working_dir: /app/tutorial
+    command: sh -c '/app/docker/run_tutorial.sh'
+    tty: true

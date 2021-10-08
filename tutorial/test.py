@@ -5,7 +5,6 @@ import tfheppy
 from tfheppy import Encoder
 from tfheppy import Ctxt
 from tfheppy import Service
-import pytest
 
 PERMIT_ERROR = 1/100
 PERMIT_ERROR2 = 1/3
