@@ -110,6 +110,7 @@ def test_pbs():
     c = ser.pbs_relu(c)
     d = ser.decrypt_and_decode(c)
     assert assert_with_diff(x*m, d, PERMIT_ERROR3)
+    # print(x, d)
 
     print("pbs_sigmoid")
     c = ser.pbs_sigmoid(c)
@@ -191,6 +192,20 @@ def test_matrix_vector_mult():
     print(f"{np.dot(m, x)}")
     print(d)
 
+def test_run_custom_test_vector():
+    x = 2.0
+
+    custom_test_vector = ser.custom_test_vector_args()
+    c = ser.encode_and_encrypt(x)
+    for i, v in enumerate(custom_test_vector):
+        custom_test_vector[i] = v / 3
+
+    r = ser.run_custom_test_vector(c, custom_test_vector)
+    d = ser.decrypt_and_decode(r)
+
+    assert assert_with_diff(x / 3, d, PERMIT_ERROR2)
+
+
 
 if __name__ == "__main__":
     test_hom_add_sub()
@@ -201,3 +216,5 @@ if __name__ == "__main__":
     # test_sum_in_col()
     test_max_in_col()
     test_matrix_vector_mult()
+
+    test_run_custom_test_vector()
