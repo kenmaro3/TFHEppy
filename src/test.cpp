@@ -37,7 +37,13 @@ PYBIND11_MODULE(tfheppy, m)
       .def(py::init<>())
       .def(py::init<double, double, int>())
       .def("encode_0_1", &Encoder::encode_0_1, py::arg("x"))
-      .def("print", &Encoder::print);
+      .def("print", &Encoder::print)
+      .def("get_a", &Encoder::get_a)
+      .def("get_b", &Encoder::get_b)
+      .def("get_d", &Encoder::get_d)
+      .def("get_half", &Encoder::get_half)
+      .def("get_half_d", &Encoder::get_half_d)
+      .def("get_bp", &Encoder::get_bp);
 
   py::class_<Ctxt>(m, "Ctxt")
       .def(py::init<>())
@@ -80,6 +86,7 @@ PYBIND11_MODULE(tfheppy, m)
       .def("deserialize_gk_from_file", &Service::deserialize_gk_from_file, py::arg("path"))
       .def("set_sk", &Service::set_sk, py::arg("x"))
       .def("set_gk", &Service::set_gk, py::arg("x"))
+      .def("set_encoder", &Service::set_encoder, py::arg("encoder"))
       .def("add_const", &Service::add_const, py::arg("x"), py::arg("m"))
       .def("add_const_vector", &Service::add_const_vector, py::arg("x"), py::arg("m"), py::arg("is_omp") = bool(true))
       .def("add_hom_fixed_encoder", &Service::add_hom_fixed_encoder, py::arg("x"), py::arg("y"))
@@ -93,7 +100,8 @@ PYBIND11_MODULE(tfheppy, m)
       .def("inner", &Service::inner, py::arg("x"), py::arg("m"), py::arg("expansion"), py::arg("is_omp") = bool(true))
       .def("vector_matrix_mult", &Service::vector_matrix_mult, py::arg("x"), py::arg("m"), py::arg("expansion") = double(1.0), py::arg("is_omp") = bool(true))
       .def("custom_test_vector_args", &Service::basic_custom_test_vector)
-      .def("run_custom_test_vector", &Service::run_custom_test_vector, py::arg("x"), py::arg("custom_test_vector"));
+      .def("run_custom_test_vector", py::overload_cast<Ctxt, std::array<double, lvl1param::n>>(&Service::run_custom_test_vector), py::arg("x"), py::arg("custom_test_vector"))
+      .def("run_custom_test_vector", py::overload_cast<Ctxt, std::array<double, lvl1param::n>, Encoder>(&Service::run_custom_test_vector), py::arg("x"), py::arg("custom_test_vector"), py::arg("encoder_target"));
 }
 
 // Ctxt run_custon_test_vector(Ctxt x, std::array<std::array<lvl1param::T, lvl1param::n>, 2> m)

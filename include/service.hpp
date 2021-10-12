@@ -97,6 +97,11 @@ namespace TFHEpp
       this->deserialize_gk(x);
     }
 
+    void set_encoder(Encoder encoder)
+    {
+      this->encoder = encoder;
+    }
+
     Ctxt encode_and_encrypt(double x)
     {
       TLWE<lvl0param> c_tmp = tlweSymEncodeEncrypt<lvl0param>(x, lvl0param::alpha, this->sk->key.lvl0, this->encoder);
@@ -315,6 +320,17 @@ namespace TFHEpp
       TFHEpp::ProgrammableBootstrapping(res, x.get(), *(this->gk.get()), this->encoder, this->encoder, test_vector);
 
       return Ctxt(res, this->encoder);
+    }
+
+    Ctxt run_custom_test_vector(Ctxt x, std::array<double, lvl1param::n> custom_test_vector_args, Encoder encoder_target)
+    {
+      TLWE<lvl0param> res;
+      std::array<std::array<lvl1param::T, lvl1param::n>, 2> custom_test_vector;
+
+      DirectCustomTestVector<lvl1param> test_vector = DirectCustomTestVector<lvl1param>::from_unencoded(custom_test_vector, custom_test_vector_args, encoder_target);
+      TFHEpp::ProgrammableBootstrapping(res, x.get(), *(this->gk.get()), this->encoder, encoder_target, test_vector);
+
+      return Ctxt(res, encoder_target);
     }
 
     pybind11::bytes serialize_ctxt(Ctxt x)

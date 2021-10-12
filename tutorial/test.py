@@ -28,13 +28,15 @@ def print_interpret_permit(f, x):
 def sigmoid(a): return 1 / (1 + np.exp(-a))
 
 
-def assert_with_diff(x, y, permit=PERMIT_ERROR2):
+def assert_with_diff(x, y, permit, dist_max):
     a = abs(x - y)
     return np.all(a/dist_max < permit)
 
-def check_accuracy(x, y):
+def check_accuracy(x, y, dist_max_=None):
+    if dist_max_ is None:
+      dist_max_ = dist_max
     for i, permit in enumerate(PERMIT_LIST):
-        tmp_res = assert_with_diff(x, y, permit=permit)
+        tmp_res = assert_with_diff(x, y, permit=permit, dist_max=dist_max_)
         if tmp_res:
             return i 
     return -1
@@ -241,7 +243,7 @@ def test_matrix_vector_mult():
 def test_run_custom_test_vector():
     x = 2.0
 
-    custom_test_vector = ser.basic_custom_test_vector()
+    custom_test_vector = ser.custom_test_vector_args()
     c = ser.encode_and_encrypt(x)
     for i, v in enumerate(custom_test_vector):
         custom_test_vector[i] = v / 3
@@ -254,26 +256,26 @@ def test_run_custom_test_vector():
 
 
 if __name__ == "__main__":
-    print_interpret_permit(test_hom_add, test_hom_add())
-    print_interpret_permit(test_hom_sub, test_hom_sub())
-    print_interpret_permit(test_hom_adds, test_hom_adds())
-    print_interpret_permit(test_hom_subs, test_hom_subs())
-    print_interpret_permit(test_ser_deser_ctxt_memory, test_ser_deser_ctxt_memory())
-    print_interpret_permit(test_ser_deser_ctxt_file, test_ser_deser_ctxt_file())
-    print_interpret_permit(test_ser_deser_sk_memory, test_ser_deser_sk_memory())
-    print_interpret_permit(test_ser_deser_sk_file, test_ser_deser_sk_file())
-    print_interpret_permit(test_ser_deser_gk_memory, test_ser_deser_gk_memory())
-    print_interpret_permit(test_ser_deser_gk_file, test_ser_deser_gk_file())
-    print_interpret_permit(test_pbs_identity, test_pbs_identity())
-    print_interpret_permit(test_pbs_mult, test_pbs_mult())
-    print_interpret_permit(test_pbs_relu, test_pbs_relu())
-    print_interpret_permit(test_pbs_sigmoid, test_pbs_sigmoid())
-    print_interpret_permit(test_max, test_max())
-    print_interpret_permit(test_maxs, test_maxs())
-    print_interpret_permit(test_max_in_col, test_max_in_col())
-    print_interpret_permit(test_inner, test_inner())
-    print_interpret_permit(test_matrix_vector_mult, test_matrix_vector_mult())
-    #print_interpret_permit(test_run_custom_test_vector, test_run_custom_test_vector())
+    #print_interpret_permit(test_hom_add, test_hom_add())
+    #print_interpret_permit(test_hom_sub, test_hom_sub())
+    #print_interpret_permit(test_hom_adds, test_hom_adds())
+    #print_interpret_permit(test_hom_subs, test_hom_subs())
+    #print_interpret_permit(test_ser_deser_ctxt_memory, test_ser_deser_ctxt_memory())
+    #print_interpret_permit(test_ser_deser_ctxt_file, test_ser_deser_ctxt_file())
+    #print_interpret_permit(test_ser_deser_sk_memory, test_ser_deser_sk_memory())
+    #print_interpret_permit(test_ser_deser_sk_file, test_ser_deser_sk_file())
+    #print_interpret_permit(test_ser_deser_gk_memory, test_ser_deser_gk_memory())
+    #print_interpret_permit(test_ser_deser_gk_file, test_ser_deser_gk_file())
+    #print_interpret_permit(test_pbs_identity, test_pbs_identity())
+    #print_interpret_permit(test_pbs_mult, test_pbs_mult())
+    #print_interpret_permit(test_pbs_relu, test_pbs_relu())
+    #print_interpret_permit(test_pbs_sigmoid, test_pbs_sigmoid())
+    #print_interpret_permit(test_max, test_max())
+    #print_interpret_permit(test_maxs, test_maxs())
+    #print_interpret_permit(test_max_in_col, test_max_in_col())
+    #print_interpret_permit(test_inner, test_inner())
+    #print_interpret_permit(test_matrix_vector_mult, test_matrix_vector_mult())
+    print_interpret_permit(test_run_custom_test_vector, test_run_custom_test_vector())
     #test_hom_add_sub()
     #test_max()
     ## test_sum_in_col()
