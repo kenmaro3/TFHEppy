@@ -22,7 +22,7 @@ def get_luts(mins, maxs, service, set_min=0, set_max=1):
   max_list = []
 
   for i in range(mins.shape[0]):
-    ctv = service.custom_test_vector_args()
+    ctv = service.get_basic_lut()
 
     tfd_ctv = np.zeros_like(ctv)
     for j, v in enumerate(ctv):
@@ -45,7 +45,7 @@ def run(luts, cs, tfd_encoder, ser):
   res = []
   luts = np.array(luts)
   for i in range(len(cs)):
-    r = ser.run_custom_test_vector(x=cs[i], custom_test_vector=luts[i], encoder_target=tfd_encoder)
+    r = ser.apply_custom_lut(x=cs[i], custom_test_vector=luts[i], encoder_target=tfd_encoder)
     res.append(r)
   return res
 

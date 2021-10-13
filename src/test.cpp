@@ -3,6 +3,8 @@
 #include <tfhe++.hpp>
 #include "include/ctxt.hpp"
 #include "include/service.hpp"
+#include "include/sk.hpp"
+#include "include/gk.hpp"
 
 using namespace std;
 using namespace TFHEpp;
@@ -49,13 +51,27 @@ PYBIND11_MODULE(tfheppy, m)
       .def(py::init<>())
       .def(py::init<array<lvl0param::T, lvl0param::n + 1>, Encoder>())
       .def("get", &Ctxt::get)
-      .def("get_encoder", &Ctxt::get_encoder);
+      .def("get_encoder", &Ctxt::get_encoder)
+      .def("rescale", py::overload_cast<Ctxt, Gk>(&Ctxt::rescale), py::arg("c2"), py::arg("gk"))
+      .def("rescale", py::overload_cast<Encoder, Gk>(&Ctxt::rescale), py::arg("encoder_target"), py::arg("gk"))
+      .def("map", py::overload_cast<Ctxt, Gk>(&Ctxt::map), py::arg("c2"), py::arg("gk"))
+      .def("map", py::overload_cast<Encoder, Gk>(&Ctxt::map), py::arg("encoder_target"), py::arg("gk"))
+      .def("get_basic_lut", &Ctxt::get_basic_lut)
+      .def("apply_custom_lut", py::overload_cast<std::array<double, lvl1param::n>, Gk>(&Ctxt::apply_custom_lut), py::arg("custom_lut"), py::arg("gk"))
+      .def("apply_custom_lut", py::overload_cast<std::array<double, lvl1param::n>, Encoder, Gk>(&Ctxt::apply_custom_lut), py::arg("custom_lut"), py::arg("encoder_target"), py::arg("gk"));
+
+  py::class_<Sk>(m, "Sk")
+      .def(py::init<>());
+  py::class_<Gk>(m, "Gk")
+      .def(py::init<>());
 
   py::class_<Service>(m, "Service")
       .def(py::init<>())
       .def(py::init<Encoder>())
       .def("gen_keys", &Service::gen_keys)
       .def("get_encoder", &Service::get_encoder)
+      .def("get_sk", &Service::get_sk)
+      .def("get_gk", &Service::get_gk)
       .def("encode_and_encrypt", &Service::encode_and_encrypt, py::arg("x"))
       .def("encode_and_encrypt_vector", &Service::encode_and_encrypt_vector, py::arg("x"), py::arg("is_omp") = bool(true))
       .def("decrypt_and_decode", &Service::decrypt_and_decode, py::arg("x"))
@@ -84,8 +100,10 @@ PYBIND11_MODULE(tfheppy, m)
       .def("serialize_gk_to_file", &Service::serialize_gk_to_file, py::arg("path"))
       .def("deserialize_gk", &Service::deserialize_gk, py::arg("x"))
       .def("deserialize_gk_from_file", &Service::deserialize_gk_from_file, py::arg("path"))
-      .def("set_sk", &Service::set_sk, py::arg("x"))
-      .def("set_gk", &Service::set_gk, py::arg("x"))
+      .def("set_sk_byte", py::overload_cast<py::bytes>(&Service::set_sk), py::arg("x"))
+      .def("set_sk", py::overload_cast<Sk>(&Service::set_sk), py::arg("x"))
+      .def("set_gk_byte", py::overload_cast<py::bytes>(&Service::set_gk), py::arg("x"))
+      .def("set_gk", py::overload_cast<Gk>(&Service::set_gk), py::arg("x"))
       .def("set_encoder", &Service::set_encoder, py::arg("encoder"))
       .def("add_const", &Service::add_const, py::arg("x"), py::arg("m"))
       .def("add_const_vector", &Service::add_const_vector, py::arg("x"), py::arg("m"), py::arg("is_omp") = bool(true))
@@ -99,9 +117,9 @@ PYBIND11_MODULE(tfheppy, m)
       .def("max_in_col", &Service::max_in_col, py::arg("x"), py::arg("start_idx"), py::arg("end_idx"))
       .def("inner", &Service::inner, py::arg("x"), py::arg("m"), py::arg("expansion"), py::arg("is_omp") = bool(true))
       .def("vector_matrix_mult", &Service::vector_matrix_mult, py::arg("x"), py::arg("m"), py::arg("expansion") = double(1.0), py::arg("is_omp") = bool(true))
-      .def("custom_test_vector_args", &Service::basic_custom_test_vector)
-      .def("run_custom_test_vector", py::overload_cast<Ctxt, std::array<double, lvl1param::n>>(&Service::run_custom_test_vector), py::arg("x"), py::arg("custom_test_vector"))
-      .def("run_custom_test_vector", py::overload_cast<Ctxt, std::array<double, lvl1param::n>, Encoder>(&Service::run_custom_test_vector), py::arg("x"), py::arg("custom_test_vector"), py::arg("encoder_target"))
+      .def("get_basic_lut", &Service::get_basic_lut)
+      .def("apply_custom_lut", py::overload_cast<Ctxt, std::array<double, lvl1param::n>>(&Service::apply_custom_lut), py::arg("x"), py::arg("custom_test_vector"))
+      .def("apply_custom_lut", py::overload_cast<Ctxt, std::array<double, lvl1param::n>, Encoder>(&Service::apply_custom_lut), py::arg("x"), py::arg("custom_test_vector"), py::arg("encoder_target"))
       .def("rescale", py::overload_cast<Ctxt, Ctxt>(&Service::rescale), py::arg("c1"), py::arg("c2"))
       .def("rescale", py::overload_cast<Ctxt, Encoder>(&Service::rescale), py::arg("c1"), py::arg("encoder_target"))
       .def("map", py::overload_cast<Ctxt, Ctxt>(&Service::map), py::arg("c1"), py::arg("c2"))

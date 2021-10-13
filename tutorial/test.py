@@ -263,30 +263,68 @@ def test_matrix_vector_mult():
     return check_accuracy(np.dot(m, x), d)
 
 
-def test_run_custom_test_vector():
+def test_run_custom_lut():
     x = 2.0
 
-    custom_test_vector = ser.custom_test_vector_args()
+    custom_lut = ser.get_basic_lut()
     c = ser.encode_and_encrypt(x)
-    for i, v in enumerate(custom_test_vector):
-        custom_test_vector[i] = v / 3
+    for i, v in enumerate(custom_lut):
+        custom_lut[i] = v / 3
 
-    r = ser.run_custom_test_vector(c, custom_test_vector)
+    r = ser.apply_custom_lut(c, custom_lut)
     d = ser.decrypt_and_decode(r)
 
     return check_accuracy(x / 3, d)
 
+def test_run_custom_lut_self():
+    x = 2.0
+
+    c = ser.encode_and_encrypt(x)
+    custom_lut = c.get_basic_lut()
+    for i, v in enumerate(custom_lut):
+        custom_lut[i] = v / 3
+
+    c.apply_custom_lut(custom_lut, ser.get_gk())
+    d = ser.decrypt_and_decode(c)
+
+    return check_accuracy(x / 3, d)
+
+def test_rescale():
+    x = 2.0
+    c = ser.encode_and_encrypt(x)
+    encoder_target = Encoder(-0.1*dist_max, 0.1*dist_max, 32)
+    c2 = ser.rescale(c, encoder_target)
+    d = ser.decrypt_and_decode(c2)
+    return check_accuracy(x / 10, d)
+
+def test_rescale_self():
+    x = 2.0
+    c = ser.encode_and_encrypt(x)
+    encoder_target = Encoder(-0.1*dist_max, 0.1*dist_max, 32)
+    c.rescale(encoder_target, ser.get_gk())
+    d = ser.decrypt_and_decode(c)
+    return check_accuracy(x / 10, d)
+
+def test_map():
+    x = 2.0
+    c = ser.encode_and_encrypt(x)
+    encoder_target = Encoder(-2*dist_max, 2*dist_max, 32)
+    c2 = ser.map(c, encoder_target)
+    d = ser.decrypt_and_decode(c2)
+    return check_accuracy(x, d)
+
+def test_map_self():
+    x = 2.0
+    c = ser.encode_and_encrypt(x)
+    encoder_target = Encoder(-2*dist_max, 2*dist_max, 32)
+    c.map(encoder_target, ser.get_gk())
+    d = ser.decrypt_and_decode(c)
+    return check_accuracy(x, d)
+
 
 
 if __name__ == "__main__":
-    x = 2.0
-    c = ser.encode_and_encrypt(x)
-    encoder_target = Encoder(-20, 20, 32)
-    c2 = ser.rescale(c, encoder_target)
-    d2 = ser.decrypt_and_decode(c2)
-    d1 = ser.decrypt_and_decode(c)
-    print(d1)
-    print(d2)
+    print("hello, world")
     
     #print_interpret_permit(test_hom_add, test_hom_add())
     #print_interpret_permit(test_hom_sub, test_hom_sub())
@@ -307,7 +345,12 @@ if __name__ == "__main__":
     #print_interpret_permit(test_max_in_col, test_max_in_col())
     #print_interpret_permit(test_inner, test_inner())
     #print_interpret_permit(test_matrix_vector_mult, test_matrix_vector_mult())
-    #print_interpret_permit(test_run_custom_test_vector, test_run_custom_test_vector())
+    #print_interpret_permit(test_run_custom_lut, test_run_custom_lut())
+    #print_interpret_permit(test_run_custom_lut_self, test_run_custom_lut_self())
+    #print_interpret_permit(test_rescale, test_rescale())
+    #print_interpret_permit(test_rescale_self, test_rescale_self())
+    print_interpret_permit(test_map, test_map())
+    print_interpret_permit(test_map_self, test_map_self())
     #test_hom_add_sub()
     #test_max()
     ## test_sum_in_col()
