@@ -101,7 +101,11 @@ PYBIND11_MODULE(tfheppy, m)
       .def("vector_matrix_mult", &Service::vector_matrix_mult, py::arg("x"), py::arg("m"), py::arg("expansion") = double(1.0), py::arg("is_omp") = bool(true))
       .def("custom_test_vector_args", &Service::basic_custom_test_vector)
       .def("run_custom_test_vector", py::overload_cast<Ctxt, std::array<double, lvl1param::n>>(&Service::run_custom_test_vector), py::arg("x"), py::arg("custom_test_vector"))
-      .def("run_custom_test_vector", py::overload_cast<Ctxt, std::array<double, lvl1param::n>, Encoder>(&Service::run_custom_test_vector), py::arg("x"), py::arg("custom_test_vector"), py::arg("encoder_target"));
+      .def("run_custom_test_vector", py::overload_cast<Ctxt, std::array<double, lvl1param::n>, Encoder>(&Service::run_custom_test_vector), py::arg("x"), py::arg("custom_test_vector"), py::arg("encoder_target"))
+      .def("rescale", py::overload_cast<Ctxt, Ctxt>(&Service::rescale), py::arg("c1"), py::arg("c2"))
+      .def("rescale", py::overload_cast<Ctxt, Encoder>(&Service::rescale), py::arg("c1"), py::arg("encoder_target"))
+      .def("map", py::overload_cast<Ctxt, Ctxt>(&Service::map), py::arg("c1"), py::arg("c2"))
+      .def("map", py::overload_cast<Ctxt, Encoder>(&Service::map), py::arg("c1"), py::arg("encoder_target"));
 }
 
 // Ctxt run_custon_test_vector(Ctxt x, std::array<std::array<lvl1param::T, lvl1param::n>, 2> m)

@@ -736,6 +736,82 @@ namespace TFHEpp
       }
       return res;
     }
+
+    Ctxt rescale(Ctxt c1, Ctxt c2){
+      std::array<double, lvl1param::n> args = {};
+      DirectCustomTestVector<lvl1param>::basic_custom_test_vector(args, c1.encoder);
+
+      for(int i=0; i<lvl1param::n; i++){
+        args[i] = (((args[i]- c1.encoder.a) * (c2.encoder.b - c2.encoder.a)) / (c1.encoder.b- c1.encoder.a)) + c2.encoder.a;
+      }
+
+      TLWE<lvl0param> res;
+      std::array<std::array<lvl1param::T, lvl1param::n>, 2> custom_test_vector;
+
+      DirectCustomTestVector<lvl1param> test_vector = DirectCustomTestVector<lvl1param>::from_unencoded(custom_test_vector, args, c2.encoder);
+      TFHEpp::ProgrammableBootstrapping(res, c1.ctxt, *(this->gk.get()), c1.encoder, c2.encoder, test_vector);
+
+      return Ctxt(res, c2.encoder);
+
+    }
+
+    Ctxt rescale(Ctxt c1, Encoder encoder_target){
+      std::array<double, lvl1param::n> args = {};
+      DirectCustomTestVector<lvl1param>::basic_custom_test_vector(args, c1.encoder);
+
+      for(int i=0; i<lvl1param::n; i++){
+        args[i] = (((args[i]- c1.encoder.a) * (encoder_target.b - encoder_target.a)) / (c1.encoder.b- c1.encoder.a)) + encoder_target.a;
+      }
+
+      TLWE<lvl0param> res;
+      std::array<std::array<lvl1param::T, lvl1param::n>, 2> custom_test_vector;
+
+      DirectCustomTestVector<lvl1param> test_vector = DirectCustomTestVector<lvl1param>::from_unencoded(custom_test_vector, args, encoder_target);
+      TFHEpp::ProgrammableBootstrapping(res, c1.ctxt, *(this->gk.get()), c1.encoder, encoder_target, test_vector);
+
+      return Ctxt(res, encoder_target);
+
+    }
+
+    Ctxt map(Ctxt c1, Ctxt c2){
+      assert(c1.encoder.a >= c2.encoder.a); // asserting target encoder (c2) can cover entire range of original encoder (c1)
+      assert(c1.encoder.b <= c2.encoder.b);
+      std::array<double, lvl1param::n> args = {};
+      DirectCustomTestVector<lvl1param>::basic_custom_test_vector(args, c1.encoder);
+
+      //for(int i=0; i<lvl1param::n; i++){
+      //  args[i] = (((args[i]- c1.encoder.a) * (c2.encoder.b - c2.encoder.a)) / (c1.encoder.b- c1.encoder.a)) + c2.encoder.a;
+      //}
+
+      TLWE<lvl0param> res;
+      std::array<std::array<lvl1param::T, lvl1param::n>, 2> custom_test_vector;
+
+      DirectCustomTestVector<lvl1param> test_vector = DirectCustomTestVector<lvl1param>::from_unencoded(custom_test_vector, args, c2.encoder);
+      TFHEpp::ProgrammableBootstrapping(res, c1.ctxt, *(this->gk.get()), c1.encoder, c2.encoder, test_vector);
+
+      return Ctxt(res, c2.encoder);
+
+    }
+
+    Ctxt map(Ctxt c1, Encoder encoder_target){
+      assert(c1.encoder.a >= encoder_target.a); // asserting target encoder (c2) can cover entire range of original encoder (c1)
+      assert(c1.encoder.b <= encoder_target.b);
+      std::array<double, lvl1param::n> args = {};
+      DirectCustomTestVector<lvl1param>::basic_custom_test_vector(args, c1.encoder);
+
+      //for(int i=0; i<lvl1param::n; i++){
+      //  args[i] = (((args[i]- c1.encoder.a) * (encoder_target.b - encoder_target.a)) / (c1.encoder.b- c1.encoder.a)) + encoder_target.a;
+      //}
+
+      TLWE<lvl0param> res;
+      std::array<std::array<lvl1param::T, lvl1param::n>, 2> custom_test_vector;
+
+      DirectCustomTestVector<lvl1param> test_vector = DirectCustomTestVector<lvl1param>::from_unencoded(custom_test_vector, args, encoder_target);
+      TFHEpp::ProgrammableBootstrapping(res, c1.ctxt, *(this->gk.get()), c1.encoder, encoder_target, test_vector);
+
+      return Ctxt(res, encoder_target);
+
+    }
   };
 
 }

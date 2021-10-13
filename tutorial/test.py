@@ -21,6 +21,29 @@ encoder = Encoder(-1*dist_max, dist_max, 32)
 ser = Service(encoder)
 ser.gen_keys()
 
+def get_a_b(x):
+  tmp_max = abs(np.max(x))
+  tmp_min = abs(np.min(x))
+  tmp_abs = np.max([tmp_max, tmp_min])
+  return -1*tmp_abs-0.1, tmp_abs+0.1
+
+
+def calc_mse(x, y):
+  tmp = x - y
+  tmp2 = tmp*tmp
+  tmp3 = np.sum(tmp2)/len(tmp)
+  return tmp3
+
+def calc_mses(x, y):
+  assert len(x) == len(y)
+  mses = [calc_mse(x[i], y[i]) for i in range(len(x))]
+  return np.average(mses)
+
+
+def calc_mse_relative(x, y, service):
+  mse = calc_mse(x, y)
+  return mse/service.get_encoder().get_half_d()
+
 def print_interpret_permit(f, x):
     print(f"accuracy of {f}: {x}")
 
@@ -256,6 +279,15 @@ def test_run_custom_test_vector():
 
 
 if __name__ == "__main__":
+    x = 2.0
+    c = ser.encode_and_encrypt(x)
+    encoder_target = Encoder(-20, 20, 32)
+    c2 = ser.rescale(c, encoder_target)
+    d2 = ser.decrypt_and_decode(c2)
+    d1 = ser.decrypt_and_decode(c)
+    print(d1)
+    print(d2)
+    
     #print_interpret_permit(test_hom_add, test_hom_add())
     #print_interpret_permit(test_hom_sub, test_hom_sub())
     #print_interpret_permit(test_hom_adds, test_hom_adds())
@@ -275,7 +307,7 @@ if __name__ == "__main__":
     #print_interpret_permit(test_max_in_col, test_max_in_col())
     #print_interpret_permit(test_inner, test_inner())
     #print_interpret_permit(test_matrix_vector_mult, test_matrix_vector_mult())
-    print_interpret_permit(test_run_custom_test_vector, test_run_custom_test_vector())
+    #print_interpret_permit(test_run_custom_test_vector, test_run_custom_test_vector())
     #test_hom_add_sub()
     #test_max()
     ## test_sum_in_col()

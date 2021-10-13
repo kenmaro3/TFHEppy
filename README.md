@@ -19,5 +19,5 @@ cp tfheppy.cpython-39-x86_64-linux-gnu.so ./tutorial/
 cd ./tutorial
 pip3 install --upgrade pip
 pip3 install -r reqirements.txt
-python3 train.py && python3 t.py
+python3 train_iris.py && python3 test_iris.py
 ```
