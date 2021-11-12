@@ -1,0 +1,4 @@
+FROM ubuntu:20.04
+
+ADD ./docker/scripts/install.sh install.sh
+RUN sh install.sh

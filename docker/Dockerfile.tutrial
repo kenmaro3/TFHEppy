@@ -1,0 +1,5 @@
+FROM ubuntu:20.04
+
+ADD . /app
+RUN sh /app/docker/scripts/install.sh
+RUN sh /app/docker/scripts/build.sh
