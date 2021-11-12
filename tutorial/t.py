@@ -144,6 +144,7 @@ if __name__ == "__main__":
     p1 = raw_dense(x_test[0], ws[0], bs[0], True, True)
     p1 = raw_dense(p1, ws[1], bs[1], True, True)
     p1 = raw_dense(p1, ws[2], bs[2], False, True)
+    quit()
 
     c2 = cipher_max_pooling_1d(c, ser, 2)
     p2 = ser.decrypt_and_decode_vector(c2)

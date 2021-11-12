@@ -1,6 +1,8 @@
 #pragma once
 
 #include "ctxt.hpp"
+#include "sk.hpp"
+#include "gk.hpp"
 #include <tfhe++.hpp>
 #include <stdio.h>
 #include <sstream>
@@ -55,11 +57,15 @@ namespace TFHEpp
     double run(double x) { return x * y; }
   };
 
+
+
   class Service
   {
   private:
-    std::shared_ptr<TFHEpp::SecretKey> sk;
-    std::shared_ptr<TFHEpp::GateKey> gk;
+    //std::shared_ptr<TFHEpp::SecretKey> sk;
+    Sk sk;
+    //std::shared_ptr<TFHEpp::GateKey> gk;
+    Gk gk;
     Encoder encoder;
 
   public:
@@ -75,6 +81,12 @@ namespace TFHEpp
       return this->encoder;
     }
 
+    Sk get_sk(){return this->sk;}
+    Gk get_gk(){return this->gk;}
+
+    void set_sk(Sk sk){this->sk = sk;}
+    void set_gk(Gk gk){this->gk = gk;}
+
     void gen_keys()
     {
       // generate a random key
@@ -83,23 +95,84 @@ namespace TFHEpp
       std::shared_ptr<TFHEpp::GateKey> gk =
           std::make_shared<TFHEpp::GateKey>(*sk, this->encoder);
 
-      this->sk = sk;
-      this->gk = gk;
+      this->sk = Sk(sk);
+      this->gk = Gk(gk);
     }
 
     void set_sk(pybind11::bytes x)
     {
-      this->deserialize_sk(x);
+      Sk sk_tmp = Sk();
+      sk_tmp.deserialize_sk(x);
+      this->sk = sk_tmp;
     }
+
+    
+    pybind11::bytes serialize_sk()
+    {
+      return this->sk.serialize_sk();
+    }
+
+    void serialize_sk_to_file(string path)
+    {
+      this->sk.serialize_sk_to_file(path);
+    }
+
+    void deserialize_sk(pybind11::bytes x)
+    {
+      Sk sk_tmp = Sk();
+      sk_tmp.deserialize_sk(x);
+      this->sk = sk_tmp;
+    }
+
+    void deserialize_sk_from_file(string path)
+    {
+      Sk sk_tmp = Sk();
+      sk_tmp.deserialize_sk_from_file(path);
+      this->sk = sk_tmp;
+    }
+
 
     void set_gk(pybind11::bytes x)
     {
-      this->deserialize_gk(x);
+      Gk gk_tmp = Gk();
+      gk_tmp.deserialize_gk(x);
+      this->gk = gk_tmp;
+    }
+
+
+    
+    pybind11::bytes serialize_gk()
+    {
+      return this->gk.serialize_gk();
+    }
+
+    void serialize_gk_to_file(string path)
+    {
+      this->gk.serialize_gk_to_file(path);
+    }
+
+    void deserialize_gk(pybind11::bytes x)
+    {
+      Gk gk_tmp = Gk();
+      gk_tmp.deserialize_gk(x);
+      this->gk = gk_tmp;
+    }
+
+    void deserialize_gk_from_file(string path)
+    {
+      Gk gk_tmp = Gk();
+      gk_tmp.deserialize_gk_from_file(path);
+      this->gk = gk_tmp;
+    }
+
+    void set_encoder(Encoder encoder)
+    {
+      this->encoder = encoder;
     }
 
     Ctxt encode_and_encrypt(double x)
     {
-      TLWE<lvl0param> c_tmp = tlweSymEncodeEncrypt<lvl0param>(x, lvl0param::alpha, this->sk->key.lvl0, this->encoder);
+      TLWE<lvl0param> c_tmp = tlweSymEncodeEncrypt<lvl0param>(x, lvl0param::alpha, this->sk.get_sk()->key.lvl0, this->encoder);
       return Ctxt(c_tmp, this->encoder);
       //return c;
     }
@@ -111,7 +184,7 @@ namespace TFHEpp
         vector<Ctxt> res;
         for (auto it = x.begin(); it != x.end(); ++it)
         {
-          TLWE<lvl0param> c_tmp = tlweSymEncodeEncrypt<lvl0param>(*it, lvl0param::alpha, this->sk->key.lvl0, this->encoder);
+          TLWE<lvl0param> c_tmp = tlweSymEncodeEncrypt<lvl0param>(*it, lvl0param::alpha, this->sk.get_sk()->key.lvl0, this->encoder);
           res.push_back(Ctxt(c_tmp, this->encoder));
         }
         return res;
@@ -123,7 +196,7 @@ namespace TFHEpp
 #pragma omp parallel for private(i)
         for (i = 0; i < x.size(); i++)
         {
-          TLWE<lvl0param> c_tmp = tlweSymEncodeEncrypt<lvl0param>(x[i], lvl0param::alpha, this->sk->key.lvl0, this->encoder);
+          TLWE<lvl0param> c_tmp = tlweSymEncodeEncrypt<lvl0param>(x[i], lvl0param::alpha, this->sk.get_sk()->key.lvl0, this->encoder);
           res[i] = Ctxt(c_tmp, this->encoder);
         }
         return res;
@@ -132,7 +205,7 @@ namespace TFHEpp
 
     double decrypt_and_decode(Ctxt x)
     {
-      double tmp = TFHEpp::tlweSymDecryptDecode<lvl0param>(x.get(), this->sk->key.lvl0, x.encoder);
+      double tmp = TFHEpp::tlweSymDecryptDecode<lvl0param>(x.get(), this->sk.get_sk()->key.lvl0, x.encoder);
       return tmp;
     }
 
@@ -144,7 +217,7 @@ namespace TFHEpp
         //for(auto it=x.begin(); it!=x.end(); ++it){
         for (int i = 0; i < x.size(); i++)
         {
-          double tmp = tlweSymDecryptDecode<lvl0param>(x[i].get(), this->sk->key.lvl0, x[i].encoder);
+          double tmp = tlweSymDecryptDecode<lvl0param>(x[i].get(), this->sk.get_sk()->key.lvl0, x[i].encoder);
           res.push_back(tmp);
         }
         return res;
@@ -156,7 +229,7 @@ namespace TFHEpp
 #pragma omp parallel for private(i)
         for (i = 0; i < x.size(); i++)
         {
-          res[i] = tlweSymDecryptDecode<lvl0param>(x[i].get(), this->sk->key.lvl0, x[i].encoder);
+          res[i] = tlweSymDecryptDecode<lvl0param>(x[i].get(), this->sk.get_sk()->key.lvl0, x[i].encoder);
         }
         return res;
       }
@@ -166,7 +239,7 @@ namespace TFHEpp
     {
       TLWE<lvl0param> c_tmp;
       IdentityFunction identity_function = IdentityFunction<lvl1param>();
-      TFHEpp::ProgrammableBootstrapping(c_tmp, x.get(), *(this->gk.get()), x.encoder, x.encoder, identity_function);
+      TFHEpp::ProgrammableBootstrapping(c_tmp, x.get(), *(this->gk.get_gk().get()), x.encoder, x.encoder, identity_function);
       return Ctxt(c_tmp, x.encoder);
     }
 
@@ -198,7 +271,7 @@ namespace TFHEpp
     {
       TLWE<lvl0param> c_tmp;
       ReLUFunction relu_function = ReLUFunction<lvl1param>();
-      TFHEpp::ProgrammableBootstrapping(c_tmp, x.get(), *(this->gk.get()), x.encoder, x.encoder, relu_function);
+      TFHEpp::ProgrammableBootstrapping(c_tmp, x.get(), *(this->gk.get_gk().get()), x.encoder, x.encoder, relu_function);
       return Ctxt(c_tmp, x.encoder);
     }
 
@@ -230,7 +303,7 @@ namespace TFHEpp
     {
       TLWE<lvl0param> c_tmp;
       SigmoidFunction sigmoid_function = SigmoidFunction<lvl1param>();
-      TFHEpp::ProgrammableBootstrapping(c_tmp, x.get(), *(this->gk.get()), x.encoder, x.encoder, sigmoid_function);
+      TFHEpp::ProgrammableBootstrapping(c_tmp, x.get(), *(this->gk.get_gk().get()), x.encoder, x.encoder, sigmoid_function);
       return Ctxt(c_tmp, x.encoder);
     }
 
@@ -268,7 +341,7 @@ namespace TFHEpp
       encoder_target.update(expansion);
 
       TLWE<lvl0param> c_tmp;
-      TFHEpp::ProgrammableBootstrapping(c_tmp, x.get(), *(this->gk.get()), encoder_domain, encoder_target, mult_function);
+      TFHEpp::ProgrammableBootstrapping(c_tmp, x.get(), *(this->gk.get_gk().get()), encoder_domain, encoder_target, mult_function);
       //this->encoder.update(expansion);
       return Ctxt(c_tmp, encoder_target);
     }
@@ -298,7 +371,7 @@ namespace TFHEpp
       }
     }
 
-    std::array<double, lvl1param::n> basic_custom_test_vector()
+    std::array<double, lvl1param::n> get_basic_lut()
     {
       std::array<double, lvl1param::n> args = {};
       DirectCustomTestVector<lvl1param>::basic_custom_test_vector(args, this->encoder);
@@ -306,15 +379,26 @@ namespace TFHEpp
       return args;
     }
 
-    Ctxt run_custom_test_vector(Ctxt x, std::array<double, lvl1param::n> custom_test_vector_args)
+    Ctxt apply_custom_lut(Ctxt x, std::array<double, lvl1param::n> custom_test_vector_args)
     {
       TLWE<lvl0param> res;
       std::array<std::array<lvl1param::T, lvl1param::n>, 2> custom_test_vector;
 
       DirectCustomTestVector<lvl1param> test_vector = DirectCustomTestVector<lvl1param>::from_unencoded(custom_test_vector, custom_test_vector_args, this->encoder);
-      TFHEpp::ProgrammableBootstrapping(res, x.get(), *(this->gk.get()), this->encoder, this->encoder, test_vector);
+      TFHEpp::ProgrammableBootstrapping(res, x.get(), *(this->gk.get_gk().get()), this->encoder, this->encoder, test_vector);
 
       return Ctxt(res, this->encoder);
+    }
+
+    Ctxt apply_custom_lut(Ctxt x, std::array<double, lvl1param::n> custom_test_vector_args, Encoder encoder_target)
+    {
+      TLWE<lvl0param> res;
+      std::array<std::array<lvl1param::T, lvl1param::n>, 2> custom_test_vector;
+
+      DirectCustomTestVector<lvl1param> test_vector = DirectCustomTestVector<lvl1param>::from_unencoded(custom_test_vector, custom_test_vector_args, encoder_target);
+      TFHEpp::ProgrammableBootstrapping(res, x.get(), *(this->gk.get_gk().get()), this->encoder, encoder_target, test_vector);
+
+      return Ctxt(res, encoder_target);
     }
 
     pybind11::bytes serialize_ctxt(Ctxt x)
@@ -453,94 +537,8 @@ namespace TFHEpp
       }
     }
 
-    pybind11::bytes serialize_sk()
-    {
-      std::stringstream ss;
-      {
-        cereal::PortableBinaryOutputArchive ar(ss);
-        this->sk.get()->serialize(ar);
-      }
-      return py::bytes(ss.str());
-    }
 
-    void serialize_sk_to_file(string path)
-    {
-      {
-        std::ofstream ofs{path, std::ios::binary};
-        cereal::PortableBinaryOutputArchive ar(ofs);
-        this->sk.get()->serialize(ar);
-      }
-    }
 
-    void deserialize_sk(pybind11::bytes x)
-    {
-      std::string tmp_str(x);
-      std::stringstream ss;
-      ss << tmp_str;
-
-      std::unique_ptr<TFHEpp::SecretKey> ski = std::make_unique<TFHEpp::SecretKey>();
-      {
-        cereal::PortableBinaryInputArchive ar(ss);
-        ski->serialize(ar);
-      }
-      this->sk = std::make_shared<TFHEpp::SecretKey>(*ski.get());
-    }
-
-    void deserialize_sk_from_file(string path)
-    {
-      std::unique_ptr<TFHEpp::SecretKey> ski = std::make_unique<TFHEpp::SecretKey>();
-      {
-        std::ifstream ifs{path, std::ios::binary};
-        cereal::PortableBinaryInputArchive ar(ifs);
-        ski->serialize(ar);
-      }
-      this->sk = std::make_shared<TFHEpp::SecretKey>(*ski.get());
-      //this->sk = ski;
-    }
-
-    pybind11::bytes serialize_gk()
-    {
-      std::stringstream ss;
-      {
-        cereal::PortableBinaryOutputArchive ar(ss);
-        this->gk.get()->serialize(ar);
-      }
-      return py::bytes(ss.str());
-    }
-
-    void serialize_gk_to_file(string path)
-    {
-      {
-        std::ofstream ofs{path, std::ios::binary};
-        cereal::PortableBinaryOutputArchive ar(ofs);
-        this->gk.get()->serialize(ar);
-      }
-    }
-
-    void deserialize_gk(pybind11::bytes x)
-    {
-      std::unique_ptr<TFHEpp::GateKey> gki = std::make_unique<TFHEpp::GateKey>();
-      std::string tmp_str(x);
-      std::stringstream ss;
-      ss << tmp_str;
-      {
-        cereal::PortableBinaryInputArchive ar(ss);
-        gki->serialize(ar);
-      }
-
-      this->gk = std::make_shared<TFHEpp::GateKey>(*gki.get());
-    }
-
-    void deserialize_gk_from_file(string path)
-    {
-      std::unique_ptr<TFHEpp::GateKey> gki = std::make_unique<TFHEpp::GateKey>();
-      {
-        std::ifstream ifs{path, std::ios::binary};
-        cereal::PortableBinaryInputArchive ar(ifs);
-        gki->serialize(ar);
-      }
-      this->gk = std::make_shared<TFHEpp::GateKey>(*gki.get());
-    }
 
     Ctxt add_hom_fixed_encoder(Ctxt x, Ctxt y)
     {
@@ -638,7 +636,7 @@ namespace TFHEpp
     Ctxt max_hom(Ctxt x, Ctxt y)
     {
       TLWE<lvl0param> c_tmp;
-      TFHEpp::HomMAX(c_tmp, x.get(), y.get(), x.encoder, y.encoder, x.encoder, *(this->gk.get()));
+      TFHEpp::HomMAX(c_tmp, x.get(), y.get(), x.encoder, y.encoder, x.encoder, *(this->gk.get_gk().get()));
       return Ctxt(c_tmp, x.encoder);
     }
 
@@ -719,6 +717,82 @@ namespace TFHEpp
         res[i] = this->inner(x, m[i], max_ds, is_omp);
       }
       return res;
+    }
+
+    Ctxt rescale(Ctxt c1, Ctxt c2){
+      std::array<double, lvl1param::n> args = {};
+      DirectCustomTestVector<lvl1param>::basic_custom_test_vector(args, c1.encoder);
+
+      for(int i=0; i<lvl1param::n; i++){
+        args[i] = (((args[i]- c1.encoder.a) * (c2.encoder.b - c2.encoder.a)) / (c1.encoder.b- c1.encoder.a)) + c2.encoder.a;
+      }
+
+      TLWE<lvl0param> res;
+      std::array<std::array<lvl1param::T, lvl1param::n>, 2> custom_test_vector;
+
+      DirectCustomTestVector<lvl1param> test_vector = DirectCustomTestVector<lvl1param>::from_unencoded(custom_test_vector, args, c2.encoder);
+      TFHEpp::ProgrammableBootstrapping(res, c1.ctxt, *(this->gk.get_gk().get()), c1.encoder, c2.encoder, test_vector);
+
+      return Ctxt(res, c2.encoder);
+
+    }
+
+    Ctxt rescale(Ctxt c1, Encoder encoder_target){
+      std::array<double, lvl1param::n> args = {};
+      DirectCustomTestVector<lvl1param>::basic_custom_test_vector(args, c1.encoder);
+
+      for(int i=0; i<lvl1param::n; i++){
+        args[i] = (((args[i]- c1.encoder.a) * (encoder_target.b - encoder_target.a)) / (c1.encoder.b- c1.encoder.a)) + encoder_target.a;
+      }
+
+      TLWE<lvl0param> res;
+      std::array<std::array<lvl1param::T, lvl1param::n>, 2> custom_test_vector;
+
+      DirectCustomTestVector<lvl1param> test_vector = DirectCustomTestVector<lvl1param>::from_unencoded(custom_test_vector, args, encoder_target);
+      TFHEpp::ProgrammableBootstrapping(res, c1.ctxt, *(this->gk.get_gk().get()), c1.encoder, encoder_target, test_vector);
+
+      return Ctxt(res, encoder_target);
+
+    }
+
+    Ctxt map(Ctxt c1, Ctxt c2){
+      assert(c1.encoder.a >= c2.encoder.a); // asserting target encoder (c2) can cover entire range of original encoder (c1)
+      assert(c1.encoder.b <= c2.encoder.b);
+      std::array<double, lvl1param::n> args = {};
+      DirectCustomTestVector<lvl1param>::basic_custom_test_vector(args, c1.encoder);
+
+      //for(int i=0; i<lvl1param::n; i++){
+      //  args[i] = (((args[i]- c1.encoder.a) * (c2.encoder.b - c2.encoder.a)) / (c1.encoder.b- c1.encoder.a)) + c2.encoder.a;
+      //}
+
+      TLWE<lvl0param> res;
+      std::array<std::array<lvl1param::T, lvl1param::n>, 2> custom_test_vector;
+
+      DirectCustomTestVector<lvl1param> test_vector = DirectCustomTestVector<lvl1param>::from_unencoded(custom_test_vector, args, c2.encoder);
+      TFHEpp::ProgrammableBootstrapping(res, c1.ctxt, *(this->gk.get_gk().get()), c1.encoder, c2.encoder, test_vector);
+
+      return Ctxt(res, c2.encoder);
+
+    }
+
+    Ctxt map(Ctxt c1, Encoder encoder_target){
+      assert(c1.encoder.a >= encoder_target.a); // asserting target encoder (c2) can cover entire range of original encoder (c1)
+      assert(c1.encoder.b <= encoder_target.b);
+      std::array<double, lvl1param::n> args = {};
+      DirectCustomTestVector<lvl1param>::basic_custom_test_vector(args, c1.encoder);
+
+      //for(int i=0; i<lvl1param::n; i++){
+      //  args[i] = (((args[i]- c1.encoder.a) * (encoder_target.b - encoder_target.a)) / (c1.encoder.b- c1.encoder.a)) + encoder_target.a;
+      //}
+
+      TLWE<lvl0param> res;
+      std::array<std::array<lvl1param::T, lvl1param::n>, 2> custom_test_vector;
+
+      DirectCustomTestVector<lvl1param> test_vector = DirectCustomTestVector<lvl1param>::from_unencoded(custom_test_vector, args, encoder_target);
+      TFHEpp::ProgrammableBootstrapping(res, c1.ctxt, *(this->gk.get_gk().get()), c1.encoder, encoder_target, test_vector);
+
+      return Ctxt(res, encoder_target);
+
     }
   };
 
