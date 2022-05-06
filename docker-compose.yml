@@ -5,9 +5,9 @@ services:
     image: tfheppy
     build:
       context: .
-      dockerfile: ./docker/Dockerfile
+      dockerfile: ./docker/Dockerfile.tutrial
     volumes:
       - ./:/app/
     working_dir: /app/tutorial
-    command: sh -c '/app/docker/run_tutorial.sh'
+    command: python3 test.py
     tty: true
