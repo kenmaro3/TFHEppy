@@ -5,6 +5,10 @@
 #include "include/service.hpp"
 #include "include/sk.hpp"
 #include "include/gk.hpp"
+#include "include/ctxt_bin.hpp"
+#include "include/service_bin.hpp"
+#include "include/ctxt_ring.hpp"
+#include "include/ctxt_rgsw.hpp"
 
 using namespace std;
 using namespace TFHEpp;
@@ -59,6 +63,32 @@ PYBIND11_MODULE(tfheppy, m)
       .def("get_basic_lut", &Ctxt::get_basic_lut)
       .def("apply_custom_lut", py::overload_cast<std::array<double, lvl1param::n>, Gk>(&Ctxt::apply_custom_lut), py::arg("custom_lut"), py::arg("gk"))
       .def("apply_custom_lut", py::overload_cast<std::array<double, lvl1param::n>, Encoder, Gk>(&Ctxt::apply_custom_lut), py::arg("custom_lut"), py::arg("encoder_target"), py::arg("gk"));
+
+  py::class_<CtxtBin>(m, "CtxtBin")
+      .def(py::init<>())
+      .def(py::init<array<lvl0param::T, lvl0param::n + 1>>())
+      .def("get", &CtxtBin::get);
+
+  py::class_<CtxtBinLevel1>(m, "CtxtBinLevel1")
+      .def(py::init<>())
+      .def(py::init<array<lvl1param::T, lvl1param::n + 1>>())
+      .def("get", &CtxtBinLevel1::get);
+
+  py::class_<CtxtRing>(m, "CtxtRing")
+      .def(py::init<>())
+      .def("get", &CtxtRing::get);
+
+  py::class_<CtxtRingLevel1>(m, "CtxtRingLevel1")
+      .def(py::init<>())
+      .def("get", &CtxtRingLevel1::get);
+
+  // py::class_<CtxtRGSW>(m, "CtxtRGSW")
+  //     .def(py::init<>())
+  //     .def("get", &CtxtRGSW::get);
+
+  py::class_<CtxtRGSWLevel1>(m, "CtxtRGSWLevel1")
+      .def(py::init<>())
+      .def("get", &CtxtRGSWLevel1::get);
 
   py::class_<Sk>(m, "Sk")
       .def(py::init<>());
@@ -124,6 +154,50 @@ PYBIND11_MODULE(tfheppy, m)
       .def("rescale", py::overload_cast<Ctxt, Encoder>(&Service::rescale), py::arg("c1"), py::arg("encoder_target"))
       .def("map", py::overload_cast<Ctxt, Ctxt>(&Service::map), py::arg("c1"), py::arg("c2"))
       .def("map", py::overload_cast<Ctxt, Encoder>(&Service::map), py::arg("c1"), py::arg("encoder_target"));
+
+  py::class_<ServiceBin>(m, "ServiceBin")
+      .def(py::init<>())
+      .def("gen_keys", &ServiceBin::gen_keys)
+      .def("get_sk", &ServiceBin::get_sk)
+      .def("get_gk", &ServiceBin::get_gk)
+      .def("encrypt", &ServiceBin::encrypt, py::arg("x"))
+      .def("encrypt_vector", &ServiceBin::encrypt_vector, py::arg("x"), py::arg("is_omp") = bool(true))
+      .def("encrypt_level1", &ServiceBin::encrypt_level1, py::arg("x"))
+      .def("encrypt_vector_level1", &ServiceBin::encrypt_vector_level1, py::arg("x"), py::arg("is_omp") = bool(true))
+      // .def("encrypt_ring", &ServiceBin::encrypt_ring, py::arg("x"))
+      .def("encrypt_ring_level1", &ServiceBin::encrypt_ring_level1, py::arg("x"))
+      .def("encrypt_rgsw", &ServiceBin::encrypt_rgsw, py::arg("x"))
+
+      .def("decrypt_level1", &ServiceBin::decrypt_level1, py::arg("x"))
+      .def("decrypt_vector_level1", &ServiceBin::decrypt_vector_level1, py::arg("x"), py::arg("is_omp") = bool(true))
+      .def("decrypt", &ServiceBin::decrypt, py::arg("x"))
+      .def("decrypt_vector", &ServiceBin::decrypt_vector, py::arg("x"), py::arg("is_omp") = bool(true))
+      // .def("decrypt_ring", &ServiceBin::decrypt_ring, py::arg("x"))
+      .def("decrypt_ring_level1", &ServiceBin::decrypt_ring_level1, py::arg("x"))
+
+      .def("serialize_ctxt", &ServiceBin::serialize_ctxt, py::arg("x"))
+      .def("serialize_ctxt_vector", &ServiceBin::serialize_ctxt_vector, py::arg("x"))
+      .def("serialize_ctxt_to_file", &ServiceBin::serialize_ctxt_to_file, py::arg("x"), py::arg("path"))
+      .def("serialize_ctxt_to_file_vector", &ServiceBin::serialize_ctxt_to_file_vector, py::arg("x"), py::arg("path"))
+      .def("deserialize_ctxt", &ServiceBin::deserialize_ctxt, py::arg("x"))
+      .def("deserialize_ctxt_vector", &ServiceBin::deserialize_ctxt_vector, py::arg("x"), py::arg("is_omp") = bool(true))
+      .def("deserialize_ctxt_from_file", &ServiceBin::deserialize_ctxt_from_file, py::arg("path"))
+      .def("deserialize_ctxt_from_file_vector", &ServiceBin::deserialize_ctxt_from_file_vector, py::arg("path"), py::arg("is_omp") = bool(true))
+      .def("serialize_sk", &ServiceBin::serialize_sk)
+      .def("serialize_sk_to_file", &ServiceBin::serialize_sk_to_file, py::arg("path"))
+      .def("deserialize_sk", &ServiceBin::deserialize_sk, py::arg("x"))
+      .def("deserialize_sk_from_file", &ServiceBin::deserialize_sk_from_file, py::arg("path"))
+      .def("serialize_gk", &ServiceBin::serialize_gk)
+      .def("serialize_gk_to_file", &ServiceBin::serialize_gk_to_file, py::arg("path"))
+      .def("deserialize_gk", &ServiceBin::deserialize_gk, py::arg("x"))
+      .def("deserialize_gk_from_file", &ServiceBin::deserialize_gk_from_file, py::arg("path"))
+      .def("set_sk_byte", py::overload_cast<py::bytes>(&ServiceBin::set_sk), py::arg("x"))
+      .def("set_sk", py::overload_cast<Sk>(&ServiceBin::set_sk), py::arg("x"))
+      .def("set_gk_byte", py::overload_cast<py::bytes>(&ServiceBin::set_gk), py::arg("x"))
+      .def("set_gk", py::overload_cast<Gk>(&ServiceBin::set_gk), py::arg("x"))
+
+      .def("inverse_sample_extract_index", &ServiceBin::inverse_sample_extract_index, py::arg("x"), py ::arg("index"))
+      .def("cmux_fft", &ServiceBin::cmux_fft, py::arg("c_flag"), py ::arg("c_true"), py::arg("c_false"));
 }
 
 // Ctxt run_custon_test_vector(Ctxt x, std::array<std::array<lvl1param::T, lvl1param::n>, 2> m)
