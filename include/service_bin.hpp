@@ -160,8 +160,11 @@ namespace TFHEpp
 
     CtxtRingLevel1 encrypt_ring_level1(array<uint32_t, TFHEpp::lvl1param::n> x)
     {
+      array<uint32_t, TFHEpp::lvl1param::n> pmu;
+      for (int i = 0; i < TFHEpp::lvl1param::n; i++)
+        pmu[i] = x[i] ? TFHEpp::lvl1param::mu : -TFHEpp::lvl1param::mu;
       TRLWE<TFHEpp::lvl1param> c1 = trlweSymEncrypt<TFHEpp::lvl1param>(
-          x, TFHEpp::lvl1param::alpha, sk.get_sk()->key.lvl1);
+          pmu, TFHEpp::lvl1param::alpha, sk.get_sk()->key.lvl1);
 
       return CtxtRingLevel1(c1);
     }
