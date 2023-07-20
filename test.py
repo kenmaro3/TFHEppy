@@ -352,11 +352,9 @@ def test_horizontal_packing_cipher(input_bit_length, output_bit_length, ser):
     # input query
     x = get_random_binary_list(size=input_bit_length)
 
-    ser = load_key()
-
     # encrypt input bits by trgsw
     enc_input = encrypt_input(x, ser)
-    # encrypt tables each bit with trlwe
+    # encrypt tables each bit with trlwe, for horizontal packing
     enc_table = encrypt_table_for_horizontal_packing(table_transpose, ser)
 
     tmp_list = []
@@ -390,11 +388,11 @@ def main_horizontal_packing():
     # output bit length
     output_bit_length = 1
 
-
     test_num = 10
     ser = load_key()
     for i in tqdm(range(test_num)):
         test_horizontal_packing_cipher(input_bit_length, output_bit_length, ser)
+
 
 if __name__ == "__main__":
     print("hello, world")
