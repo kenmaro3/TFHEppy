@@ -62,6 +62,12 @@ def get_random_binary_list(size):
     for i in range(size):
         res.append(get_random_binary())
     return res
+
+def get_random_binary_list_2d(size1, size2):
+    res = []
+    for i in range(size1):
+        res.append(get_random_binary_list(size2))
+    return res
     
 
 def test_cmux(ser):
@@ -122,6 +128,19 @@ def encrypt_table(xs, ser):
     for i in range(len(xs)):
         c1 = ser.encrypt_level1(xs[i])
         c1_ring = ser.inverse_sample_extract_index(c1, 0)
+        res_list.append(c1_ring)
+    return res_list
+
+def encrypt_table_for_horizontal_packing(xs, ser):
+    res_list = []
+    for i in range(len(xs)):
+        tmp_fix_array = np.zeros(1<<11, dtype=np.int32)
+        for j in range(len(xs[i])):
+            # print("here")
+            # print(xs[i][j])
+            # input()
+            tmp_fix_array[j] = xs[i][j]
+        c1_ring = ser.encrypt_ring_level1(tmp_fix_array)
         res_list.append(c1_ring)
     return res_list
 
@@ -312,9 +331,7 @@ def test_tree_raw(input_bit_length, output_bit_length):
     assert res == table[search_index], f"{res}, {table[search_index]}"
 
 
-
-if __name__ == "__main__":
-    print("hello, world")
+def main_cmux_tree():
     # input bit length
     input_bit_length = 5
     # output bit length
@@ -327,3 +344,58 @@ if __name__ == "__main__":
         test_tree_raw(input_bit_length, output_bit_length)
         test_tree_cipher(input_bit_length, output_bit_length, ser)
 
+def test_horizontal_packing_cipher(input_bit_length, output_bit_length, ser):
+    table = get_random_binary_list_2d(output_bit_length, pow(2, input_bit_length))
+    table = np.array(table)
+    table_transpose = np.transpose(table)
+
+    # input query
+    x = get_random_binary_list(size=input_bit_length)
+
+    ser = load_key()
+
+    # encrypt input bits by trgsw
+    enc_input = encrypt_input(x, ser)
+    # encrypt tables each bit with trlwe
+    enc_table = encrypt_table_for_horizontal_packing(table_transpose, ser)
+
+    tmp_list = []
+
+    for j in range(pow(2, input_bit_length-1)):
+        tmp = ser.cmux_fft(enc_input[-1], enc_table[2*j+1], enc_table[2*j])
+        tmp_list.append(tmp)
+    
+
+    for i in range(1, input_bit_length):
+        tmp_list_new = []
+        for j in range(pow(2, input_bit_length-i-1)):
+            tmp = ser.cmux_fft(enc_input[input_bit_length-i-1], tmp_list[2*j+1], tmp_list[2*j])
+            tmp_list_new.append(tmp)
+        tmp_list = tmp_list_new
+    
+
+    d_cmux_res = ser.decrypt_ring_level1(tmp_list[0])
+
+    for i in range(output_bit_length):
+        res = d_cmux_res[i]
+        search_index = 0
+        for j in range(input_bit_length):
+            search_index += pow(2, input_bit_length - j -1) * x[j]
+        assert res == table[i][search_index], f"{res}, {table[i][search_index]}, at {i}"
+
+
+def main_horizontal_packing():
+    # input bit length
+    input_bit_length = 5
+    # output bit length
+    output_bit_length = 1
+
+
+    test_num = 10
+    ser = load_key()
+    for i in tqdm(range(test_num)):
+        test_horizontal_packing_cipher(input_bit_length, output_bit_length, ser)
+
+if __name__ == "__main__":
+    print("hello, world")
+    main_horizontal_packing()
