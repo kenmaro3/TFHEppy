@@ -4,6 +4,7 @@ import numpy as np
 import pprint
 import tfheppy
 import random
+from tqdm import tqdm
 
 from tfheppy import Encoder
 from tfheppy import Ctxt
@@ -49,17 +50,24 @@ def search_index_for_dict(x):
     return index
 
 def get_random_binary():
-    tmp = random.random()
-    if tmp < 0.5:
-        return 0
-    else:
-        return 1
+    return random.getrandbits(1)
+    # tmp = random.random()
+    # if tmp < 0.5:
+    #     return 0
+    # else:
+    #     return 1
+
+def get_random_binary_list(size):
+    res = []
+    for i in range(size):
+        res.append(get_random_binary())
+    return res
     
 
 def test_cmux(ser):
     t_list = []
     t_wall_list = []
-    for _ in range(10):
+    for _ in tqdm(range(100)):
         t1_wall = time.time()
         p1 = get_random_binary()
         p2 = get_random_binary()
@@ -103,9 +111,9 @@ def load_key():
     ser = ServiceBin()
     ser.deserialize_sk_from_file("keys/sk.txt")
     ser.deserialize_gk_from_file("keys/gk.txt")
-    print("load done")
+    #print("load done")
     t2 = time.time()
-    print(f"key_load_time: {t2-t1}")
+    #print(f"key_load_time: {t2-t1}")
     return ser
 
 
@@ -128,38 +136,67 @@ def encrypt_input(xs, ser):
 
 
 def cmux_tree_test(ser):
+    # input bit length
     n = 2
-    digits_length = 2
+
+    # output bit length
+    digits_length = 1
+
+    # number of test trial
     test_number = 10
 
+    # table for binary search
+    y = [0,1,0,1]
+    y = [1, 0, 1, 0]
+    #y = [1,1, 1, 1]
+    # for i in range(digits_length * 1<<n):
+    #     y.append(get_random_binary())
+    y = np.array(y)
 
-    y = np.array([0, 1, 1, 0, 1, 0, 1, 0])
+    # y.shape == (output_bit_length, input_bit_length)
     y = y.reshape([digits_length, 1<<n])
     print(y)
 
+    # table_dict_list is needed for validation
+    # later used for assertion with cmux result
     table_dict_list = []
     for i in range(digits_length):
-        
         table_dict = get_dict(n, y[i])
         table_dict_list.append(table_dict)
     pprint.pprint(table_dict_list)
 
 
-    for test_index in range(test_number):
-        print(f"test_index: {test_index}")
+    # test main
+    # loop for test_number
+    for test_index in tqdm(range(test_number)):
+        #print(f"test_index: {test_index}")
+
+        # input bits created by random
         search_input = []
         for n_index in range(n):
             search_input.append(get_random_binary())
+        
 
+        ## loop for output bit length
+        #for output_index in range(1):
+
+        output_index = 0
+
+        # encrypt input bits by trgsw
         enc_input = encrypt_input(search_input, ser)
-        enc_table = encrypt_table(y[0], ser)
+        # encrypt tables each bit with trlwe
+        enc_table = encrypt_table(list(reversed(y[output_index])), ser)
 
+        # search_index is for validation
         search_index = search_index_for_dict(search_input)
 
+        # cmux main
         tmp_list = []
         for index in range(n):
+            # separate out the first layer only
             if index == 0:
                 for i in range(1<<(n-1)):
+                    # cmux_fft(flag_bit_with_trgsw, return_bit_if_true_in_trlwf, return_bit_if_false_in_trlwe)
                     tmp = ser.cmux_fft(enc_input[index], enc_table[2*i], enc_table[2*i+1]) 
                     tmp_list.append(tmp)
             else:
@@ -170,33 +207,123 @@ def cmux_tree_test(ser):
                     tmp_list = new_tmp_list
         
 
+        assert len(tmp_list) == 1
+        # tmp_list = [trlwe([result, 0, 0, 0...])]
+        # d_cmux_res = [result, 0, 0, 0....]
         d_cmux_res = ser.decrypt_ring_level1(tmp_list[0])
+        print()
+        print(f"search_input: {search_input}")
+        print(f"search_index: {search_index}")
+        print(table_dict_list)
+        print(d_cmux_res[0])
 
-        assert table_dict_list[0][search_index] == d_cmux_res[0]
+        assert table_dict_list[output_index][search_index] == d_cmux_res[0]
+
+
+def cmux_raw(flag, x1, x0):
+    if flag:
+        return x1
+    else:
+        return x0
+
+def test_tree_cipher(input_bit_length, output_bit_length, ser):
+    # table
+    #table = [1, 0, 1, 0]
+    table = get_random_binary_list(size=pow(2, input_bit_length))
+
+    # input query
+    #x = [0, 0]
+    x = get_random_binary_list(size=input_bit_length)
+
+    # print(f"x    : {x}")
+    # print(f"table: {table}")
+
+    # encrypt
+    # encrypt input bits by trgsw
+    enc_input = encrypt_input(x, ser)
+    # encrypt tables each bit with trlwe
+    enc_table = encrypt_table(table, ser)
+    #print(enc_input)
+
+    tmp_list = []
+
+    for j in range(pow(2, input_bit_length-1)):
+        tmp = ser.cmux_fft(enc_input[-1], enc_table[2*j+1], enc_table[2*j])
+        tmp_list.append(tmp)
+    
+    # d_tmp_list = [ser.decrypt_ring_level1(el) for el in tmp_list]
+    # for el in d_tmp_list:
+    #    print(el[0])
+    # quit()
+
+    for i in range(1, input_bit_length):
+        tmp_list_new = []
+        for j in range(pow(2, input_bit_length-i-1)):
+            tmp = ser.cmux_fft(enc_input[input_bit_length-i-1], tmp_list[2*j+1], tmp_list[2*j])
+            tmp_list_new.append(tmp)
+        tmp_list = tmp_list_new
+    
+
+    d_cmux_res = ser.decrypt_ring_level1(tmp_list[0])
+    res = d_cmux_res[0]
+
+    search_index = 0
+    for i in range(input_bit_length):
+        search_index += pow(2, input_bit_length - i -1) * x[i]
+    #print(f"search_index: {search_index}")
+
+    assert res == table[search_index], f"{res}, {table[search_index]}"
+
+def test_tree_raw(input_bit_length, output_bit_length):
+    # table
+    #table = [1, 0, 1, 0]
+    table = get_random_binary_list(size=pow(2, input_bit_length))
+
+    # input query
+    #x = [0, 0]
+    x = get_random_binary_list(size=input_bit_length)
+
+    # print(f"x    : {x}")
+    # print(f"table: {table}")
+
+    tmp_list = []
+
+    for j in range(pow(2, input_bit_length-1)):
+        tmp = cmux_raw(x[-1], table[2*j+1], table[2*j])
+        tmp_list.append(tmp)
+    
+    for i in range(1, input_bit_length):
+        tmp_list_new = []
+        for j in range(pow(2, input_bit_length-i-1)):
+            tmp = cmux_raw(x[input_bit_length-i-1], tmp_list[2*j+1], tmp_list[2*j])
+            tmp_list_new.append(tmp)
+        tmp_list = tmp_list_new
+    
+
+    assert len(tmp_list) == 1
+
+    search_index = 0
+    for i in range(input_bit_length):
+        search_index += pow(2, input_bit_length - i -1) * x[i]
+    #print(f"search_index: {search_index}")
+
+    res = tmp_list[0]
+
+    assert res == table[search_index], f"{res}, {table[search_index]}"
 
 
 
 if __name__ == "__main__":
     print("hello, world")
+    # input bit length
+    input_bit_length = 5
+    # output bit length
+    output_bit_length = 1
 
 
-    #ser = load_key()
-    #test_cmux(ser)
-
+    test_num = 100
     ser = load_key()
-    cmux_tree_test(ser)
-
-
-
-
-
-
-
-
-
-
-        
-    
-
-
+    for i in tqdm(range(test_num)):
+        test_tree_raw(input_bit_length, output_bit_length)
+        test_tree_cipher(input_bit_length, output_bit_length, ser)
 
